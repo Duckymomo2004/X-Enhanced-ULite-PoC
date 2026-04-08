@@ -1,0 +1,21 @@
+# Dataset and generated data
+NEU-seg/
+datasets/
+*.npz
+
+# Model checkpoints and weights
+*.pth
+*.pt
+*.ckpt
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
