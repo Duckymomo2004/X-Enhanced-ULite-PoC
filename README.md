@@ -1,43 +1,43 @@
-# XULite - Lightweight Surface Defect Segmentation on NEU-seg
+# ULite - Lightweight Surface Defect Segmentation on NEU-seg
 
-Trien khai mo hinh XULite cho bai toan phan doan khuyet tat be mat thep (binary segmentation) tren bo du lieu NEU-seg bang PyTorch.
+PyTorch implementation of the XULite model for steel surface defect segmentation (binary segmentation) on the NEU-seg dataset.
 
-Notebook chinh: `XUlite.ipynb`
+Main notebook: `XUlite.ipynb`
 
-## Muc luc
+## Table of Contents
 
-- [1. Tong quan](#1-tong-quan)
-- [2. Kien truc mo hinh](#2-kien-truc-mo-hinh)
-- [3. Ket qua thuc nghiem](#3-ket-qua-thuc-nghiem)
-- [4. Cau truc thu muc](#4-cau-truc-thu-muc)
-- [5. Yeu cau moi truong](#5-yeu-cau-moi-truong)
-- [6. Chuan bi du lieu](#6-chuan-bi-du-lieu)
-- [7. Huan luyen va danh gia](#7-huan-luyen-va-danh-gia)
-- [8. Cach chay nhanh](#8-cach-chay-nhanh)
-- [9. Huong phat trien](#9-huong-phat-trien)
-- [10. Trich dan](#10-trich-dan)
+1. Overview
+2. Model Architecture
+3. Experimental Results
+4. Folder Structure
+5. Environment Requirements
+6. Data Preparation
+7. Training and Evaluation
+8. Quick Start
+9. Future Improvements
+10. Citation
 
-## 1. Tong quan
+## 1. Overview
 
-- Bai toan: phan doan nhi phan (khuyet tat / nen).
-- Input: anh grayscale `200x200`.
-- Output: mask nhi phan `1` kenh.
-- Framework: PyTorch.
+- Task: binary segmentation (defect vs. background)
+- Input: `200x200` grayscale images
+- Output: `1`-channel binary masks
+- Framework: PyTorch
 
-## 2. Kien truc mo hinh
+## 2. Model Architecture
 
-Mo hinh dung kien truc encoder-decoder kieu U-shape voi skip connection, ket hop cac khoi:
+The model uses a U-shaped encoder-decoder architecture with skip connections, combined with the following building blocks:
 
-- `XConv`: depthwise conv voi mat na duong cheo chinh/phu.
-- `AxialDW`: depthwise conv theo truc ngang va doc.
-- Bottleneck 3 nhanh: `AxialDW` + `XConv` + `DWConv 3x3`.
+- `XConv`: depthwise convolution with main-diagonal and anti-diagonal masks
+- `AxialDW`: depthwise convolution along horizontal and vertical axes
+- `3-branch bottleneck`: `AxialDW + XConv + DWConv 3x3`
 
-## 3. Ket qua thuc nghiem
+## 3. Experimental Results
 
-### Cau hinh huan luyen
+### Training Configuration
 
-| Thanh phan | Gia tri |
-|---|---|
+| Component | Value |
+| --- | --- |
 | Device | CUDA |
 | Epochs | 50 |
 | Batch size | 32 |
@@ -47,45 +47,45 @@ Mo hinh dung kien truc encoder-decoder kieu U-shape voi skip connection, ket hop
 | LR Scheduler | ReduceLROnPlateau |
 | Checkpoint | `best_xulite_model.pth` |
 
-Thoi gian train: khoang `36 phut 31 giay` (10:07:53 -> 10:44:24).
+Training time: about `36 minutes 31 seconds` (`10:07:53 -> 10:44:24`).
 
-### Ket qua huan luyen
+### Training Results
 
-| Metric | Gia tri |
-|---|---|
+| Metric | Value |
+| --- | --- |
 | Train Loss | `0.3258 -> 0.0463` |
 | Train Accuracy | `83.36% -> 98.03%` |
-| Val Loss | `0.1659 -> 0.0559` |
-| Val Loss tot nhat | `0.0551` (epoch 47) |
-| Val Accuracy cuoi | `97.74%` |
+| Validation Loss | `0.1659 -> 0.0559` |
+| Best Validation Loss | `0.0551` at epoch `47` |
+| Final Validation Accuracy | `97.74%` |
 
-### Segmentation metrics (Validation)
+### Segmentation Metrics on Validation Set
 
 | Metric | Score |
-|---|---|
+| --- | --- |
 | Precision | `0.9285` |
 | Recall | `0.8863` |
 | F1-score | `0.9069` |
 | mIoU | `0.8297` |
 
-### Hieu nang suy luan
+### Inference Performance
 
-| Metric | Gia tri |
-|---|---|
-| Thoi gian cho 1000 anh | `7.082 giay` |
-| FPS | `141.20 img/s` |
+| Metric | Value |
+| --- | --- |
+| Time for 1000 images | `7.082` seconds |
+| FPS | `141.20` img/s |
 
-### Do phuc tap mo hinh
+### Model Complexity
 
-| Metric | Gia tri |
-|---|---|
+| Metric | Value |
+| --- | --- |
 | FLOPs | `229.327M` |
 | Parameters (THOP) | `864.545K` |
-| Parameters (dem tu model) | `979,009` (`0.979M`) |
+| Parameters (counted from model) | `979,009` (`0.979M`) |
 
-Luu y: co the xuat hien chenh lech nho so tham so giua cac cong cu profile do cach dem khac nhau.
+Note: small differences in parameter counts may appear across profiling tools due to different counting methods.
 
-## 4. Cau truc thu muc
+## 4. Folder Structure
 
 ```text
 XUlite/
@@ -100,64 +100,64 @@ XUlite/
     `-- TestData/
 ```
 
-## 5. Yeu cau moi truong
+## 5. Environment Requirements
 
 - Python `3.10+`
-- CUDA (neu co GPU NVIDIA)
+- CUDA if an NVIDIA GPU is available
 
-Cai thu vien:
+Install the required libraries with:
 
 ```bash
 pip install torch torchvision opencv-python numpy pandas matplotlib tqdm thop
 ```
 
-## 6. Chuan bi du lieu
+## 6. Data Preparation
 
-Notebook cung cap san:
+The notebook already provides:
 
-- `rle_decode(...)`: giai ma mask tu RLE.
-- `build_npz(...)`: chuyen anh + RLE CSV sang `.npz`.
+- `rle_decode(...)`: decode masks from RLE format
+- `build_npz(...)`: convert images and RLE CSV labels into `.npz` files
 
-Vi du tao du lieu train/val:
+Example for building the train and validation sets:
 
 ```python
 build_npz(train_dr, train_csv_path, "train.npz", "train")
 build_npz(val_dr, val_csv_path, "val.npz", "val")
 ```
 
-Dataset loader `SurfaceDefectDatasetV2` co:
+The `SurfaceDefectDatasetV2` loader includes:
 
-- CLAHE tang tuong phan anh grayscale.
-- Augmentation: flip ngang/doc, rotation.
-- Chuan hoa `mean=[0.5], std=[0.5]`.
+- CLAHE for grayscale contrast enhancement
+- Augmentation: horizontal flip, vertical flip, rotation
+- Normalization with `mean=[0.5]` and `std=[0.5]`
 
-## 7. Huan luyen va danh gia
+## 7. Training and Evaluation
 
-Trong notebook da co day du pipeline:
+The notebook already includes the full pipeline:
 
-- Train + validation theo epoch.
-- Luu checkpoint tot nhat theo validation loss.
-- Tinh Precision, Recall, F1-score, mIoU.
-- Do FPS, FLOPs va so tham so.
+- training and validation by epoch
+- saving the best checkpoint based on validation loss
+- computing Precision, Recall, F1-score, and mIoU
+- measuring FPS, FLOPs, and parameter count
 
-Neu chay local thay vi Colab, can sua cac duong dan `/content/drive/...` ve duong dan may cua ban.
+If you run locally instead of Colab, update the `/content/drive/...` paths to match your local machine.
 
-## 8. Cach chay nhanh
+## 8. Quick Start
 
-1. Mo `XUlite.ipynb`.
-2. Chinh duong dan dataset.
-3. Chay tuan tu cac cell: model -> dataloader -> train -> evaluate -> visualize.
-4. Kiem tra file checkpoint `best_xulite_model.pth`.
+1. Open `XUlite.ipynb`.
+2. Update the dataset paths.
+3. Run the cells in order: model -> dataloader -> train -> evaluate -> visualize.
+4. Check the checkpoint file `best_xulite_model.pth`.
 
-## 9. Huong phat trien
+## 9. Future Improvements
 
-- Tach notebook thanh module (`model.py`, `dataset.py`, `train.py`, `eval.py`).
-- Bo sung `requirements.txt` va script CLI de tai lap thi nghiem de hon.
-- Them Dice score va benchmark tren tap test doc lap.
+- Split the notebook into modules such as `model.py`, `dataset.py`, `train.py`, and `eval.py`
+- Add `requirements.txt` and CLI scripts for easier experiment reproduction
+- Add Dice score and benchmark on an independent test set
 
-## 10. Trich dan
+## 10. Citation
 
-Tham khao da su dung:
+Reference used:
 
 - ScienceDirect article (PII: `S1051200425006578`): https://www.sciencedirect.com/science/article/pii/S1051200425006578
-- Ngay truy cap: `2026-04-08`
+- Access date: `2026-04-08`
